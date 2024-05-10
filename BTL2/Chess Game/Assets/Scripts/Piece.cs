@@ -12,6 +12,7 @@ public class Piece : MonoBehaviour
     public pieceType Type
     {
         get { return _type; }
+        set { _type = value; }
     }
     public playerColor Player
     {
@@ -23,7 +24,7 @@ public class Piece : MonoBehaviour
     private Vector3 moveTo;
     private GameManager manager;
 
-    private MoveFactory factory = new MoveFactory(Board.Instance);
+    public MoveFactory factory = new MoveFactory(Board.Instance);
     private List<Move> moves = new List<Move>();
 
     private bool _hasMoved = false;

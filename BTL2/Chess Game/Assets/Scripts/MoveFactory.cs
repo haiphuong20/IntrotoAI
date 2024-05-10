@@ -138,8 +138,59 @@ public class MoveFactory
         _GenerateMove(9, new Vector2(-1, 1));
     }
 
+    bool IsPositionInCheck(Vector2 position, Piece.playerColor color)
+    {
+        for (int x = 0; x < 8; ++i)
+        {
+            for (int y = 0; y < 8; ++i)
+            {
+                Tile tile = _board.GetTileFromBoard(new Vector2(x, y));
+                if (tile.CurrentPiece && tile.CurrentPiece.Player != color && tile.CurrentPiece.Type != Piece.pieceType.KING)
+                {
+                    Debug.Assert(tile.CurrentPiece.Player != Piece.playerColor.UNKNOWN);
+                    foreach (Move move in tile.CurrentPiece.factory.GetMoves(tile.CurrentPiece, tile.Position))
+                        if (move.secondPosition.Position == position)
+                            return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    static void GenerateCastleMove(Piece king)
+    {
+        if (!king.HasMoved && !king.factory.IsPositionInCheck(king.position, king.Player))
+        {
+            Piece[] rooks = new Piece[2]
+            {
+        king.factory._board.GetTileFromBoard(new Vector2(0, king.position.y))?.CurrentPiece,
+        king.factory._board.GetTileFromBoard(new Vector2(7, king.position.y))?.CurrentPiece,
+            };
+
+            foreach (Piece rook in rooks)
+            {
+                if (rook && !rook.HasMoved)
+                {
+                    Vector2 direction = Mathf.Sign(rook.position.x - king.position.x) * Vector2.right;
+
+                    bool canCastle = true;
+                    for (float x = 1; x <= 2 && canCastle; x += 1)
+                        canCastle = !king.factory.IsPositionInCheck(king.position + direction * x, king.Player);
+
+                    if (canCastle)
+                    {
+                        king.factory._CheckAndStoreMove(king.position.x + direction * 2);
+                        // NOTE: the rook move will be handled in GameManager.SwapPieces
+                    }
+                }
+            }
+        }
+    }
+
     void _GetKingMoves()
     {
+        GenerateCastleMove(_piece);
         for (int x = -1; x <= 1; x++)
         {
             for (int y = -1; y <= 1; y++)
